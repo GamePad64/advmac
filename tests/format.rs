@@ -79,6 +79,11 @@ fn format_arraystring_mac8(#[case] format: MacAddrFormat, #[case] expected: &str
     MAC_HEXADECIMAL0X_SIZE8
 )]
 fn test_length(#[case] format: MacAddrFormat, #[case] expected6: usize, #[case] expected8: usize) {
-    assert_eq!(TEST_MAC6.format_string(format).len(), expected6);
-    assert_eq!(TEST_MAC8.format_string(format).len(), expected8);
+    let mut buf6 = ArrayString::<MAC_MAX_SIZE>::new();
+    TEST_MAC6.format_write(&mut buf6, format).unwrap();
+    assert_eq!(buf6.len(), expected6);
+
+    let mut buf8 = ArrayString::<MAC_MAX_SIZE>::new();
+    TEST_MAC8.format_write(&mut buf8, format).unwrap();
+    assert_eq!(buf8.len(), expected8);
 }

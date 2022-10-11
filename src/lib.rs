@@ -447,33 +447,6 @@ macro_rules! mac8 {
 
 #[cfg(test)]
 mod test {
-    use crate::MacAddr6;
-    #[cfg(all(feature = "std", feature = "serde"))]
-    use serde::{Deserialize, Serialize};
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn test_format() {
-        let mac = MacAddr6::from([0x11, 0x22, 0x03, 0x00, 0x50, 0x6A]);
-        assert_eq!(mac.to_string(), "11-22-03-00-50-6A")
-    }
-
-    #[cfg(all(feature = "std", feature = "serde"))]
-    #[test]
-    fn test_serde() {
-        #[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
-        struct S {
-            pub mac: MacAddr6,
-        }
-        let s = S {
-            mac: mac6!("11-22-03-00-50-6A"),
-        };
-        let serialized = serde_json::to_string(&s).unwrap();
-        assert_eq!(serialized, r#"{"mac":"11-22-03-00-50-6A"}"#);
-        let parsed: S = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(parsed, s);
-    }
-
     #[test]
     fn test_flags_roundtrip() {
         let mut addr = mac6!("50:74:f2:b1:a8:7f");
