@@ -31,7 +31,7 @@ impl<const N: usize, const N2: usize> MacParser<N, N2> {
 
     const fn from_hex(s: &[u8]) -> Result<[u8; N], ParseError> {
         if s.len() != Self::HEXADECIMAL_SIZE {
-            return Err(ParseError::InvalidLength);
+            return Err(ParseError::InvalidLength { length: s.len() });
         }
 
         let mut result = [0u8; N];
@@ -63,7 +63,7 @@ impl<const N: usize, const N2: usize> MacParser<N, N2> {
     const fn parse_separated(s: &[u8], sep: u8, group_len: usize) -> Result<[u8; N], ParseError> {
         let expected_len = (2 * N) + ((2 * N) / group_len) - 1;
         if s.len() != expected_len {
-            return Err(ParseError::InvalidLength);
+            return Err(ParseError::InvalidLength { length: s.len() });
         }
 
         if !Self::check_separator(s, sep, group_len) {
@@ -107,7 +107,7 @@ impl<const N: usize, const N2: usize> MacParser<N, N2> {
                 _ => Err(ParseError::InvalidMac),
             }
         } else {
-            Err(ParseError::InvalidLength)
+            Err(ParseError::InvalidLength { length: s.len() })
         }
     }
 }

@@ -19,16 +19,16 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 pub enum ParseError {
     #[snafu(display("invalid MAC address"))]
     InvalidMac,
-    #[snafu(display("invalid string length"))]
-    InvalidLength,
+    #[snafu(display("invalid string length: {length}"))]
+    InvalidLength { length: usize },
 }
 
 #[derive(Eq, PartialEq, Debug, Snafu)]
 pub enum IpError {
     #[snafu(display("invalid link-local address"))]
-    InvalidLinkLocal,
+    NotLinkLocal,
     #[snafu(display("IP is not multicast"))]
-    IpNotMulticast,
+    NotMulticast,
 }
 
 /// Maximum formatted size.
@@ -132,7 +132,7 @@ macro_rules! mac_impl {
             }
 
             /// Returns internal array representation for this MAC address, consuming it
-            pub const fn into_array(self) -> [u8; $sz] {
+            pub const fn to_array(self) -> [u8; $sz] {
                 self.0
             }
 
@@ -260,10 +260,7 @@ macro_rules! mac_impl {
 
         #[cfg(feature = "serde")]
         impl Serialize for $nm {
-            fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer,
-            {
+            fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
                 let mut buf = ArrayString::<MAC_MAX_SIZE>::new();
                 self.format_write(&mut buf, MacAddrFormat::Canonical)
                     .unwrap();
@@ -273,10 +270,7 @@ macro_rules! mac_impl {
 
         #[cfg(feature = "serde")]
         impl<'de> Deserialize<'de> for $nm {
-            fn deserialize<D>(d: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
+            fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
                 Self::from_str(ArrayString::<MAC_MAX_SIZE>::deserialize(d)?.as_ref())
                     .map_err(serde::de::Error::custom)
             }
@@ -297,23 +291,23 @@ mac_impl!(MacAddr6, 6, 12);
 mac_impl!(MacAddr8, 8, 16);
 
 impl MacAddr6 {
-    pub const fn into_modified_eui64(self) -> MacAddr8 {
-        let b = self.into_array();
+    pub const fn to_modified_eui64(self) -> MacAddr8 {
+        let b = self.to_array();
         MacAddr8([b[0] ^ 0b00000010, b[1], b[2], 0xFF, 0xFE, b[3], b[4], b[5]])
     }
 
     pub const fn try_from_modified_eui64(eui64: MacAddr8) -> Result<Self, IpError> {
-        let b = eui64.into_array();
+        let b = eui64.to_array();
         if (b[3] == 0xFF) | (b[4] == 0xFE) {
             Ok(Self([b[0] ^ 0b00000010, b[1], b[2], b[5], b[6], b[7]]))
         } else {
-            Err(IpError::InvalidLinkLocal)
+            Err(IpError::NotLinkLocal)
         }
     }
 
     #[cfg(feature = "std")]
-    pub const fn into_link_local_ipv6(self) -> Ipv6Addr {
-        let mac64 = self.into_modified_eui64().into_array();
+    pub const fn to_link_local_ipv6(self) -> Ipv6Addr {
+        let mac64 = self.to_modified_eui64().to_array();
 
         Ipv6Addr::new(
             0xFE80,
@@ -341,7 +335,7 @@ impl MacAddr6 {
             | (octets[11] != 0xFF)
             | (octets[12] != 0xFE)
         {
-            return Err(IpError::InvalidLinkLocal);
+            return Err(IpError::NotLinkLocal);
         }
 
         Ok(Self([
@@ -357,7 +351,7 @@ impl MacAddr6 {
     #[cfg(feature = "std")]
     pub const fn try_from_multicast_ipv4(ip: Ipv4Addr) -> Result<Self, IpError> {
         if !ip.is_multicast() {
-            return Err(IpError::IpNotMulticast);
+            return Err(IpError::NotMulticast);
         }
         let b = ip.octets();
         Ok(Self::new([0x01, 0x00, 0x5E, b[1] & 0x7F, b[2], b[3]]))
@@ -366,7 +360,7 @@ impl MacAddr6 {
     #[cfg(feature = "std")]
     pub const fn try_from_multicast_ipv6(ip: Ipv6Addr) -> Result<Self, IpError> {
         if !ip.is_multicast() {
-            return Err(IpError::IpNotMulticast);
+            return Err(IpError::NotMulticast);
         }
         let b = ip.octets();
         Ok(Self::new([0x33, 0x33, b[12], b[13], b[14], b[15]]))
@@ -421,7 +415,7 @@ impl MacAddr8 {
 /// ```
 /// use advmac::{mac6, MacAddr6};
 /// const MAC6: MacAddr6 = mac6!("11:22:33:44:55:66");
-/// # assert_eq!(MAC6.into_array(), [0x11, 0x22, 0x33, 0x44, 0x55, 0x66]);
+/// # assert_eq!(MAC6.to_array(), [0x11, 0x22, 0x33, 0x44, 0x55, 0x66]);
 /// ```
 #[macro_export]
 macro_rules! mac6 {
@@ -439,7 +433,7 @@ macro_rules! mac6 {
 /// ```
 /// use advmac::{mac8, MacAddr8};
 /// const MAC8: MacAddr8 = mac8!("11:22:33:44:55:66:77:88");
-/// # assert_eq!(MAC8.into_array(), [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88]);
+/// # assert_eq!(MAC8.to_array(), [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88]);
 /// ```
 #[macro_export]
 macro_rules! mac8 {
@@ -453,8 +447,7 @@ macro_rules! mac8 {
 
 #[cfg(test)]
 mod test {
-    use crate::{MacAddr6, MacAddr8, ParseError};
-    use core::str::FromStr;
+    use crate::MacAddr6;
     #[cfg(all(feature = "std", feature = "serde"))]
     use serde::{Deserialize, Serialize};
 
@@ -463,38 +456,6 @@ mod test {
     fn test_format() {
         let mac = MacAddr6::from([0x11, 0x22, 0x03, 0x00, 0x50, 0x6A]);
         assert_eq!(mac.to_string(), "11-22-03-00-50-6A")
-    }
-
-    #[test]
-    fn test_parse() {
-        let mac = MacAddr6::from([0x11, 0x22, 0x03, 0x00, 0x50, 0x6A]);
-        assert_eq!(mac, "11:22:03:00:50:6A".parse().unwrap());
-        assert_eq!(mac, "11-22-03-00-50-6A".parse().unwrap());
-        assert_eq!(mac, "11220300506A".parse().unwrap());
-        assert_eq!(mac, "1122.0300.506A".parse().unwrap());
-
-        // Inconsistent separators
-        assert_eq!(
-            MacAddr6::from_str("11-22:03:00:50:6A"),
-            Err(ParseError::InvalidMac)
-        );
-
-        // Invalid length
-        assert_eq!(
-            MacAddr6::from_str("1122:03:00:50:6A"),
-            Err(ParseError::InvalidLength)
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn test_ipv6() {
-        use std::net::Ipv6Addr;
-
-        let mac = mac6!("52:74:f2:b1:a8:7f");
-        let ip = Ipv6Addr::from_str("fe80::5074:f2ff:feb1:a87f").unwrap();
-        assert_eq!(mac.into_link_local_ipv6(), ip);
-        assert_eq!(MacAddr6::try_from_link_local_ipv6(ip).unwrap(), mac);
     }
 
     #[cfg(all(feature = "std", feature = "serde"))]
