@@ -2,8 +2,8 @@
 
 Advanced MAC address library.
 
-![Crates.io](https://img.shields.io/crates/v/advmac?style=flat-square)
-![docs.rs](https://img.shields.io/docsrs/advmac?style=flat-square)
+[![Crates.io](https://img.shields.io/crates/v/advmac?style=flat-square)](https://crates.io/crates/advmac)
+[![docs.rs](https://img.shields.io/docsrs/advmac?style=flat-square)](https://docs.rs/advmac/latest)
 
 # Usage
 Add this to your Cargo.toml:

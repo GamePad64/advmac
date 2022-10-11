@@ -25,3 +25,7 @@ default = ["std", "rand", "serde"]
 std = ["snafu/std", "serde?/std"]
 rand = ["dep:rand"]
 serde = ["dep:serde", "arrayvec/serde"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
