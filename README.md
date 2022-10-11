@@ -6,16 +6,16 @@ Advanced MAC address library.
 [![docs.rs](https://img.shields.io/docsrs/advmac?style=flat-square)](https://docs.rs/advmac/latest)
 
 # Usage
-Add this to your Cargo.toml:
+Add this to your `Cargo.toml`:
 
 ```toml
-[dev-dependencies]
+[dependencies]
 advmac = "1.0.0"
 ```
 
 ## Features:
 - EUI-48 and EUI-64.
 - Extensive `no_std` support.
-- `serde` support (even on no_std).
+- `serde` support (even on `no_std`).
 - `const fn` address parser with convenience macros for compile-time address handling: `mac6!`, `mac8!`.
 - MAC address generation and editing.

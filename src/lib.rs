@@ -458,11 +458,6 @@ mod test {
     #[cfg(all(feature = "std", feature = "serde"))]
     use serde::{Deserialize, Serialize};
 
-    #[allow(unused)]
-    const TEST_MAC_CONST6: MacAddr6 = mac6!("11-22-03-00-50-6A");
-    #[allow(unused)]
-    const TEST_MAC_CONST8: MacAddr8 = mac8!("11-22-03-00-50-6A-BB-DA");
-
     #[cfg(feature = "std")]
     #[test]
     fn test_format() {
