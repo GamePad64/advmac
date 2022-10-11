@@ -312,7 +312,7 @@ impl MacAddr6 {
     }
 
     #[cfg(feature = "std")]
-    pub const fn to_link_local_ipv6(&self) -> Ipv6Addr {
+    pub const fn into_link_local_ipv6(self) -> Ipv6Addr {
         let mac64 = self.into_modified_eui64().into_array();
 
         Ipv6Addr::new(
@@ -373,7 +373,7 @@ impl MacAddr6 {
     }
 
     #[cfg(feature = "std")]
-    pub const fn from_multicast_ip(ip: IpAddr) -> Result<Self, IpError> {
+    pub const fn try_from_multicast_ip(ip: IpAddr) -> Result<Self, IpError> {
         match ip {
             IpAddr::V4(ip) => Self::try_from_multicast_ipv4(ip),
             IpAddr::V6(ip) => Self::try_from_multicast_ipv6(ip),
@@ -498,7 +498,7 @@ mod test {
 
         let mac = mac6!("52:74:f2:b1:a8:7f");
         let ip = Ipv6Addr::from_str("fe80::5074:f2ff:feb1:a87f").unwrap();
-        assert_eq!(mac.to_link_local_ipv6(), ip);
+        assert_eq!(mac.into_link_local_ipv6(), ip);
         assert_eq!(MacAddr6::try_from_link_local_ipv6(ip).unwrap(), mac);
     }
 
