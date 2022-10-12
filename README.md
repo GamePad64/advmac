@@ -11,7 +11,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-advmac = "1.0.2"
+advmac = "1.0.3"
 ```
 
 ## Features:
