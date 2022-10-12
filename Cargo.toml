@@ -14,7 +14,6 @@ keywords = ["network", "mac", "macaddr", "eui-48", "eui-64"]
 [dependencies]
 serde = { version = "1.0.145", default-features = false, features = ["derive"], optional = true }
 rand = { version = "0.8.5", default-features = false, features = ["getrandom"], optional = true }
-snafu = { version = "0.7.2", default-features = false }
 arrayvec = { version = "0.7.2", default-features = false }
 
 [dev-dependencies]
@@ -24,7 +23,7 @@ rstest = "0.15.0"
 
 [features]
 default = ["std", "rand", "serde"]
-std = ["snafu/std", "serde?/std"]
+std = ["serde?/std"]
 rand = ["dep:rand"]
 serde = ["dep:serde", "arrayvec/serde"]
 

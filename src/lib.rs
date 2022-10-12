@@ -11,25 +11,44 @@ use core::str::FromStr;
 use rand::Rng;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use snafu::Snafu;
 #[cfg(feature = "std")]
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-#[derive(Eq, PartialEq, Debug, Snafu)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum ParseError {
-    #[snafu(display("invalid MAC address"))]
     InvalidMac,
-    #[snafu(display("invalid string length: {length}"))]
     InvalidLength { length: usize },
 }
 
-#[derive(Eq, PartialEq, Debug, Snafu)]
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidMac => write!(f, "invalid MAC address"),
+            Self::InvalidLength { length } => write!(f, "invalid string length: {}", length),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for ParseError {}
+
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum IpError {
-    #[snafu(display("invalid link-local address"))]
     NotLinkLocal,
-    #[snafu(display("IP is not multicast"))]
     NotMulticast,
 }
+
+impl Display for IpError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NotLinkLocal => write!(f, "not link-local address"),
+            Self::NotMulticast => write!(f, "not multicast address"),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for IpError {}
 
 /// Maximum formatted size.
 ///
