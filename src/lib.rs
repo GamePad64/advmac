@@ -244,10 +244,10 @@ macro_rules! mac_impl {
             }
         }
 
-        impl TryFrom<&[core::ffi::c_char]> for $nm {
+        impl TryFrom<&[i8]> for $nm {
             type Error = ParseError;
 
-            fn try_from(value: &[core::ffi::c_char]) -> Result<Self, Self::Error> {
+            fn try_from(value: &[i8]) -> Result<Self, Self::Error> {
                 Self::try_from(unsafe { &*(value as *const _ as *const [u8]) })
             }
         }
