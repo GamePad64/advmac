@@ -12,16 +12,16 @@ keywords = ["network", "mac", "macaddr", "eui-48", "eui-64"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0.145", default-features = false, optional = true }
+serde = { version = "1.0.214", default-features = false, optional = true }
 rand = { version = "0.8.5", default-features = false, features = ["getrandom"], optional = true }
-arrayvec = { version = "0.7.2", default-features = false }
+arrayvec = { version = "0.7.6", default-features = false }
 thiserror = "1.0.65"
 
 [dev-dependencies]
-serde_json = "1.0.86"
-version-sync = "0.9"
-rstest = "0.16.0"
-serde = { version = "1.0.145", default-features = false, features = ["derive"] }
+serde_json = "1.0.132"
+version-sync = "0.9.5"
+rstest = "0.23.0"
+serde = { version = "1.0.214", default-features = false, features = ["derive"] }
 
 [features]
 default = ["std", "rand", "serde"]
